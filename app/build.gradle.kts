@@ -35,15 +35,13 @@ android {
         compose = true
         buildConfig = true
     }
-
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+sourceCompatibility = JavaVersion VERSION_17 targetCompatibility = JavaVersion. VERSION_17
     }
+}
 kotlin {
-    compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
-    }
+    compilerOptions 
+jvmTarget.set(org.jetbrains.kotlin.gradle.dsl .JvmTarget.JVM_17)
 }
 dependencies {
     implementation(platform("androidx.compose:compose-bom:2024.12.01"))
