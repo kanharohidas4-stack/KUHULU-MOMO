@@ -1,5 +1,6 @@
 package com.kuhulumomo
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -42,6 +44,22 @@ private val menuItems = listOf(
 fun KuhuluMomoApp() {
     val isOwner = BuildConfig.APP_TYPE == "OWNER"
     var hindi by remember { mutableStateOf(true) }
+    val cart = remember { mutableStateMapOf<String, Int>() }
+    var showCheckout by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    val cartLines = menuItems.flatMap { item ->
+        listOf(
+            Triple(item, "Half", item.halfPrice),
+            Triple(item, "Full", item.fullPrice)
+        )
+    }.mapNotNull { (item, size, price) ->
+        val key = "${item.name}|$size"
+        val quantity = cart[key] ?: 0
+        if (quantity > 0) CartLine(item, size, price, quantity, key) else null
+    }
+    val cartTotal = cartLines.sumOf { it.price * it.quantity }
+    val cartCount = cartLines.sumOf { it.quantity }
 
     MaterialTheme {
         Scaffold { padding ->
@@ -104,7 +122,14 @@ fun KuhuluMomoApp() {
                         )
                     }
                     items(menuItems) { item ->
-                        MenuPriceCard(item = item, hindi = hindi)
+                        MenuPriceCard(
+                            item = item,
+                            hindi = hindi,
+                            halfQuantity = cart["${item.name}|Half"] ?: 0,
+                            fullQuantity = cart["${item.name}|Full"] ?: 0,
+                            onAddHalf = { cart["${item.name}|Half"] = (cart["${item.name}|Half"] ?: 0) + 1 },
+                            onAddFull = { cart["${item.name}|Full"] = (cart["${item.name}|Full"] ?: 0) + 1 }
+                        )
                     }
                     item {
                         Text(
@@ -114,8 +139,39 @@ fun KuhuluMomoApp() {
                         )
                     }
                     item {
+                        Card(modifier = Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                Text(if (hindi) "आपका कार्ट ($cartCount)" else "Your cart ($cartCount)", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                                if (cartLines.isEmpty()) {
+                                    Text(if (hindi) "अभी कार्ट खाली है। मेन्यू से मोमोज़ जोड़ें।" else "Your cart is empty. Add momos from the menu.")
+                                } else {
+                                    cartLines.forEach { line ->
+                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                                            Column(Modifier.weight(1f)) {
+                                                Text(if (hindi) line.item.hindiName else line.item.name, fontWeight = FontWeight.SemiBold)
+                                                Text("${line.size} • ₹${line.price} × ${line.quantity} = ₹${line.price * line.quantity}")
+                                            }
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                TextButton(onClick = {
+                                                    if (line.quantity <= 1) cart.remove(line.key) else cart[line.key] = line.quantity - 1
+                                                }) { Text("−") }
+                                                Text("${line.quantity}")
+                                                TextButton(onClick = { cart[line.key] = line.quantity + 1 }) { Text("+") }
+                                            }
+                                        }
+                                    }
+                                    HorizontalDivider()
+                                    Text(if (hindi) "कुल: ₹$cartTotal" else "Total: ₹$cartTotal", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                                    Button(onClick = { showCheckout = true }, modifier = Modifier.fillMaxWidth()) {
+                                        Text(if (hindi) "ऑर्डर आगे बढ़ाएँ" else "Proceed to order")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    item {
                         Text(
-                            if (hindi) "ऑनलाइन ऑर्डर की सुविधा अगले अपडेट में जोड़ी जाएगी।" else "Online ordering will be added in a future update.",
+                            if (hindi) "नोट: ऑर्डर भेजने के लिए अगली स्क्रीन पर WhatsApp या कोई शेयर ऐप चुनें।" else "Note: On the next screen, choose WhatsApp or another sharing app to send your order.",
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
@@ -123,10 +179,83 @@ fun KuhuluMomoApp() {
             }
         }
     }
+
+    if (showCheckout && !isOwner) {
+        CheckoutDialog(
+            hindi = hindi,
+            onDismiss = { showCheckout = false },
+            onShare = { customerName, phone, address ->
+                val orderText = buildString {
+                    appendLine("KUHULU MOMO ORDER")
+                    appendLine("Name: $customerName")
+                    appendLine("Phone: $phone")
+                    appendLine("Address: $address")
+                    appendLine()
+                    cartLines.forEach { appendLine("${it.item.name} (${it.size}, ${if (it.size == "Half") 6 else 12} pcs) x ${it.quantity} = ₹${it.price * it.quantity}") }
+                    appendLine("Total: ₹$cartTotal")
+                    appendLine("Delivery requested within 2 KM.")
+                }
+                val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, orderText)
+                }
+                context.startActivity(Intent.createChooser(sendIntent, if (hindi) "ऑर्डर भेजें" else "Send order"))
+                showCheckout = false
+            }
+        )
+    }
+}
+
+private data class CartLine(
+    val item: MenuItem,
+    val size: String,
+    val price: Int,
+    val quantity: Int,
+    val key: String
+)
+
+@Composable
+private fun CheckoutDialog(
+    hindi: Boolean,
+    onDismiss: () -> Unit,
+    onShare: (String, String, String) -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
+    var address by remember { mutableStateOf("") }
+    val ready = name.isNotBlank() && phone.length >= 10 && address.isNotBlank()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (hindi) "ऑर्डर की जानकारी" else "Order details") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(if (hindi) "आपका नाम" else "Your name") }, singleLine = true)
+                OutlinedTextField(value = phone, onValueChange = { phone = it.filter(Char::isDigit).take(10) }, label = { Text(if (hindi) "मोबाइल नंबर" else "Mobile number") }, singleLine = true)
+                OutlinedTextField(value = address, onValueChange = { address = it }, label = { Text(if (hindi) "डिलीवरी का पूरा पता" else "Full delivery address") })
+                Text(if (hindi) "डिलीवरी केवल 2 KM के अंदर उपलब्ध है।" else "Delivery is available only within 2 KM.")
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onShare(name.trim(), phone, address.trim()) }, enabled = ready) {
+                Text(if (hindi) "ऑर्डर शेयर करें" else "Share order")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(if (hindi) "रद्द करें" else "Cancel") }
+        }
+    )
 }
 
 @Composable
-private fun MenuPriceCard(item: MenuItem, hindi: Boolean) {
+private fun MenuPriceCard(
+    item: MenuItem,
+    hindi: Boolean,
+    halfQuantity: Int,
+    fullQuantity: Int,
+    onAddHalf: () -> Unit,
+    onAddFull: () -> Unit
+) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -141,13 +270,16 @@ private fun MenuPriceCard(item: MenuItem, hindi: Boolean) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column {
+                Column(Modifier.weight(1f)) {
                     Text(if (hindi) "हाफ • 6 पीस" else "Half • 6 pcs", style = MaterialTheme.typography.bodyMedium)
                     Text("₹${item.halfPrice}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Button(onClick = onAddHalf) { Text(if (hindi) "जोड़ें (+)  $halfQuantity" else "Add (+)  $halfQuantity") }
                 }
+                Spacer(Modifier.width(8.dp))
                 Column(horizontalAlignment = Alignment.End) {
                     Text(if (hindi) "फुल • 12 पीस" else "Full • 12 pcs", style = MaterialTheme.typography.bodyMedium)
                     Text("₹${item.fullPrice}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Button(onClick = onAddFull) { Text(if (hindi) "जोड़ें (+)  $fullQuantity" else "Add (+)  $fullQuantity") }
                 }
             }
         }
