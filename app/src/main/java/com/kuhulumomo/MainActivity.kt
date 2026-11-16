@@ -263,8 +263,7 @@ private fun CustomerHero() {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text("HELLO, MOMO LOVER!", color = Yellow, fontWeight = FontWeight.ExtraBold, fontSize = 11.sp, letterSpacing = 1.2.sp)
-                Text("Happiness in
-every bite.", color = Color.White, fontSize = 29.sp, lineHeight = 33.sp, fontWeight = FontWeight.Black)
+                Text("Happiness in\nevery bite.", color = Color.White, fontSize = 29.sp, lineHeight = 33.sp, fontWeight = FontWeight.Black)
                 Text("Delicious momos at friendly prices.", color = Color.White.copy(alpha = 0.9f), fontSize = 13.sp)
             }
             Text("🥟", fontSize = 76.sp)
@@ -288,8 +287,7 @@ private fun OwnerHero() {
     ) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Text("WELCOME BACK", color = Yellow, fontWeight = FontWeight.Bold, fontSize = 11.sp, letterSpacing = 1.3.sp)
-            Text("Your business.
-Your control.", color = Color.White, fontSize = 25.sp, lineHeight = 29.sp, fontWeight = FontWeight.Black)
+            Text("Your business.\nYour control.", color = Color.White, fontSize = 25.sp, lineHeight = 29.sp, fontWeight = FontWeight.Black)
             Text("Manage KUHULU MOMO in one place.", color = Color.White.copy(alpha = 0.9f), fontSize = 12.sp)
         }
         Text("👨‍🍳", fontSize = 60.sp)
