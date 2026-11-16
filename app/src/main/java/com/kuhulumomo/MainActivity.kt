@@ -24,26 +24,22 @@ class MainActivity : ComponentActivity() {
 
 private data class MenuItem(
     val name: String,
-    val hindiName: String,
     val halfPrice: Int,
     val fullPrice: Int
 )
 
 private val menuItems = listOf(
-    MenuItem("Veg Steam Momos", "वेज स्टीम मोमोज़", 40, 80),
-    MenuItem("Paneer Steam Momos", "पनीर स्टीम मोमोज़", 50, 100),
-    MenuItem("Veg Fried Momos", "वेज फ्राइड मोमोज़", 50, 100),
-    MenuItem("Paneer Fried Momos", "पनीर फ्राइड मोमोज़", 60, 110),
-    MenuItem("Veg Kurkure Momos", "वेज कुरकुरे मोमोज़", 60, 110),
-    MenuItem("Paneer Kurkure Momos", "पनीर कुरकुरे मोमोज़", 70, 130),
-    MenuItem("Veg Chilli Gravy Momos", "वेज चिली ग्रेवी मोमोज़", 80, 150),
-    MenuItem("Paneer Chilli Gravy Momos", "पनीर चिली ग्रेवी मोमोज़", 90, 170)
+    MenuItem("Veg Steam Momos", 40, 80),
+    MenuItem("Paneer Steam Momos", 50, 100),
+    MenuItem("Veg Fried Momos", 50, 100),
+    MenuItem("Paneer Fried Momos", 60, 110),
+    MenuItem("Veg Kurkure Momos", 60, 110),
+    MenuItem("Paneer Kurkure Momos", 70, 130)
 )
 
 @Composable
 fun KuhuluMomoApp() {
     val isOwner = BuildConfig.APP_TYPE == "OWNER"
-    var hindi by remember { mutableStateOf(true) }
     val cart = remember { mutableStateMapOf<String, Int>() }
     var showCheckout by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -76,16 +72,9 @@ fun KuhuluMomoApp() {
                         Column {
                             Text("KUHULU MOMO", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                             Text(
-                                if (isOwner) {
-                                    if (hindi) "Owner App • आपका बिज़नेस" else "Owner App • Your business"
-                                } else {
-                                    if (hindi) "स्वादिष्ट मोमोज़, सीधे आपके घर" else "Delicious momos, delivered to you"
-                                },
+                                if (isOwner) "Owner App • Your business" else "Delicious momos, delivered to you",
                                 style = MaterialTheme.typography.bodyMedium
                             )
-                        }
-                        TextButton(onClick = { hindi = !hindi }) {
-                            Text(if (hindi) "English" else "हिंदी")
                         }
                     }
                 }
@@ -93,30 +82,30 @@ fun KuhuluMomoApp() {
                 if (isOwner) {
                     item {
                         SectionCard(
-                            if (hindi) "आज का डैशबोर्ड" else "Today's dashboard",
-                            if (hindi) "बिक्री, खर्च और मुनाफा यहाँ देख सकेंगे।" else "Sales, expenses and profit will appear here."
+                            "Today's dashboard",
+                            "Sales, expenses and profit will appear here."
                         )
                     }
                     items(
                         listOf(
-                            if (hindi) "ऑर्डर मैनेजमेंट" else "Order management",
-                            if (hindi) "बिक्री और खर्च" else "Sales and expenses",
-                            if (hindi) "मुनाफा / नुकसान" else "Profit / loss",
-                            if (hindi) "स्टॉक मैनेजमेंट" else "Stock management"
+                            "Order management",
+                            "Sales and expenses",
+                            "Profit / loss",
+                            "Stock management"
                         )
                     ) { label ->
-                        SectionCard(label, if (hindi) "अगले अपडेट में आएगा" else "Coming in a future update")
+                        SectionCard(label, "Coming in a future update")
                     }
                 } else {
                     item {
                         SectionCard(
-                            if (hindi) "हमारा मेन्यू" else "Our menu",
-                            if (hindi) "स्टीम, फ्राइड, कुरकुरे और चिली मोमोज़।" else "Steam, fried, kurkure and chilli momos."
+                            "Our menu",
+                            "Steam, fried, kurkure and chilli momos."
                         )
                     }
                     item {
                         Text(
-                            if (hindi) "आइटम • हाफ (6 पीस) • फुल (12 पीस)" else "Item • Half (6 pcs) • Full (12 pcs)",
+                            "Item • Half (6 pcs) • Full (12 pcs)",
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold
                         )
@@ -124,7 +113,6 @@ fun KuhuluMomoApp() {
                     items(menuItems) { item ->
                         MenuPriceCard(
                             item = item,
-                            hindi = hindi,
                             halfQuantity = cart["${item.name}|Half"] ?: 0,
                             fullQuantity = cart["${item.name}|Full"] ?: 0,
                             onAddHalf = { cart["${item.name}|Half"] = (cart["${item.name}|Half"] ?: 0) + 1 },
@@ -133,7 +121,7 @@ fun KuhuluMomoApp() {
                     }
                     item {
                         Text(
-                            if (hindi) "होम डिलीवरी: 2 KM के अंदर" else "Home delivery: within 2 KM",
+                            "Home delivery: within 2 KM",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -141,14 +129,14 @@ fun KuhuluMomoApp() {
                     item {
                         Card(modifier = Modifier.fillMaxWidth()) {
                             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Text(if (hindi) "आपका कार्ट ($cartCount)" else "Your cart ($cartCount)", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                                Text("Your cart ($cartCount)", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                                 if (cartLines.isEmpty()) {
-                                    Text(if (hindi) "अभी कार्ट खाली है। मेन्यू से मोमोज़ जोड़ें।" else "Your cart is empty. Add momos from the menu.")
+                                    Text("Your cart is empty. Add momos from the menu.")
                                 } else {
                                     cartLines.forEach { line ->
                                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                                             Column(Modifier.weight(1f)) {
-                                                Text(if (hindi) line.item.hindiName else line.item.name, fontWeight = FontWeight.SemiBold)
+                                                Text(line.item.name, fontWeight = FontWeight.SemiBold)
                                                 Text("${line.size} • ₹${line.price} × ${line.quantity} = ₹${line.price * line.quantity}")
                                             }
                                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -161,9 +149,9 @@ fun KuhuluMomoApp() {
                                         }
                                     }
                                     HorizontalDivider()
-                                    Text(if (hindi) "कुल: ₹$cartTotal" else "Total: ₹$cartTotal", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                                    Text("Total: ₹$cartTotal", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                                     Button(onClick = { showCheckout = true }, modifier = Modifier.fillMaxWidth()) {
-                                        Text(if (hindi) "ऑर्डर आगे बढ़ाएँ" else "Proceed to order")
+                                        Text("Proceed to order")
                                     }
                                 }
                             }
@@ -171,7 +159,7 @@ fun KuhuluMomoApp() {
                     }
                     item {
                         Text(
-                            if (hindi) "नोट: ऑर्डर भेजने के लिए अगली स्क्रीन पर WhatsApp या कोई शेयर ऐप चुनें।" else "Note: On the next screen, choose WhatsApp or another sharing app to send your order.",
+                            "Note: On the next screen, choose WhatsApp or another sharing app to send your order.",
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
@@ -182,7 +170,6 @@ fun KuhuluMomoApp() {
 
     if (showCheckout && !isOwner) {
         CheckoutDialog(
-            hindi = hindi,
             onDismiss = { showCheckout = false },
             onShare = { customerName, phone, address ->
                 val orderText = buildString {
@@ -199,7 +186,7 @@ fun KuhuluMomoApp() {
                     type = "text/plain"
                     putExtra(Intent.EXTRA_TEXT, orderText)
                 }
-                context.startActivity(Intent.createChooser(sendIntent, if (hindi) "ऑर्डर भेजें" else "Send order"))
+                context.startActivity(Intent.createChooser(sendIntent, "Send order"))
                 showCheckout = false
             }
         )
@@ -216,7 +203,6 @@ private data class CartLine(
 
 @Composable
 private fun CheckoutDialog(
-    hindi: Boolean,
     onDismiss: () -> Unit,
     onShare: (String, String, String) -> Unit
 ) {
@@ -227,22 +213,22 @@ private fun CheckoutDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (hindi) "ऑर्डर की जानकारी" else "Order details") },
+        title = { Text("Order details") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(if (hindi) "आपका नाम" else "Your name") }, singleLine = true)
-                OutlinedTextField(value = phone, onValueChange = { phone = it.filter(Char::isDigit).take(10) }, label = { Text(if (hindi) "मोबाइल नंबर" else "Mobile number") }, singleLine = true)
-                OutlinedTextField(value = address, onValueChange = { address = it }, label = { Text(if (hindi) "डिलीवरी का पूरा पता" else "Full delivery address") })
-                Text(if (hindi) "डिलीवरी केवल 2 KM के अंदर उपलब्ध है।" else "Delivery is available only within 2 KM.")
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Your name") }, singleLine = true)
+                OutlinedTextField(value = phone, onValueChange = { phone = it.filter(Char::isDigit).take(10) }, label = { Text("Mobile number") }, singleLine = true)
+                OutlinedTextField(value = address, onValueChange = { address = it }, label = { Text("Full delivery address") })
+                Text("Delivery is available only within 2 KM.")
             }
         },
         confirmButton = {
             Button(onClick = { onShare(name.trim(), phone, address.trim()) }, enabled = ready) {
-                Text(if (hindi) "ऑर्डर शेयर करें" else "Share order")
+                Text("Share order")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(if (hindi) "रद्द करें" else "Cancel") }
+            TextButton(onClick = onDismiss) { Text("Cancel") }
         }
     )
 }
@@ -250,7 +236,6 @@ private fun CheckoutDialog(
 @Composable
 private fun MenuPriceCard(
     item: MenuItem,
-    hindi: Boolean,
     halfQuantity: Int,
     fullQuantity: Int,
     onAddHalf: () -> Unit,
@@ -262,7 +247,7 @@ private fun MenuPriceCard(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(
-                if (hindi) item.hindiName else item.name,
+                item.name,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
@@ -271,15 +256,15 @@ private fun MenuPriceCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(Modifier.weight(1f)) {
-                    Text(if (hindi) "हाफ • 6 पीस" else "Half • 6 pcs", style = MaterialTheme.typography.bodyMedium)
+                    Text("Half • 6 pcs", style = MaterialTheme.typography.bodyMedium)
                     Text("₹${item.halfPrice}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                    Button(onClick = onAddHalf) { Text(if (hindi) "जोड़ें (+)  $halfQuantity" else "Add (+)  $halfQuantity") }
+                    Button(onClick = onAddHalf) { Text("Add (+)  $halfQuantity") }
                 }
                 Spacer(Modifier.width(8.dp))
                 Column(horizontalAlignment = Alignment.End) {
-                    Text(if (hindi) "फुल • 12 पीस" else "Full • 12 pcs", style = MaterialTheme.typography.bodyMedium)
+                    Text("Full • 12 pcs", style = MaterialTheme.typography.bodyMedium)
                     Text("₹${item.fullPrice}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                    Button(onClick = onAddFull) { Text(if (hindi) "जोड़ें (+)  $fullQuantity" else "Add (+)  $fullQuantity") }
+                    Button(onClick = onAddFull) { Text("Add (+)  $fullQuantity") }
                 }
             }
         }
