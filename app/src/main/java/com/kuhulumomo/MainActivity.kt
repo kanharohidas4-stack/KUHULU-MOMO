@@ -100,7 +100,7 @@ fun KuhuluMomoApp() {
                     item {
                         SectionCard(
                             "Our menu",
-                            "Steam, fried, kurkure and chilli momos."
+                            "Steam, fried and kurkure momos."
                         )
                     }
                     item {
