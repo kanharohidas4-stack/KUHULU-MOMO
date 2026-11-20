@@ -38,20 +38,23 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private data class MenuItem(val name: String, val halfPrice: Int, val fullPrice: Int, val emoji: String)
+private data class MenuItem(val name: String, val hindiName: String, val halfPrice: Int, val fullPrice: Int, val emoji: String)
 private val menuItems = listOf(
-    MenuItem("Veg Steam Momos", 40, 80, "🥟"),
-    MenuItem("Paneer Steam Momos", 50, 100, "🥟"),
-    MenuItem("Veg Fried Momos", 50, 100, "🍽️"),
-    MenuItem("Paneer Fried Momos", 60, 110, "🍽️"),
-    MenuItem("Veg Kurkure Momos", 60, 110, "✨"),
-    MenuItem("Paneer Kurkure Momos", 70, 130, "✨")
+    MenuItem("Veg Steam Momos", "वेज स्टीम मोमोज़", 40, 80, "🥟"),
+    MenuItem("Paneer Steam Momos", "पनीर स्टीम मोमोज़", 50, 100, "🥟"),
+    MenuItem("Veg Fried Momos", "वेज फ्राइड मोमोज़", 50, 100, "🍽️"),
+    MenuItem("Paneer Fried Momos", "पनीर फ्राइड मोमोज़", 60, 110, "🍽️"),
+    MenuItem("Veg Kurkure Momos", "वेज कुरकुरे मोमोज़", 60, 110, "✨"),
+    MenuItem("Paneer Kurkure Momos", "पनीर कुरकुरे मोमोज़", 70, 130, "✨"),
+    MenuItem("Veg Chilli Gravy Momos", "वेज चिली ग्रेवी मोमोज़", 80, 150, "🌶️"),
+    MenuItem("Paneer Chilli Gravy Momos", "पनीर चिली ग्रेवी मोमोज़", 90, 170, "🌶️")
 )
 
 @Composable
 fun KuhuluMomoApp() {
     val isOwner = BuildConfig.APP_TYPE == "OWNER"
     val cart = remember { mutableStateMapOf<String, Int>() }
+    var hindi by remember { mutableStateOf(false) }
     var showCheckout by remember { mutableStateOf(false) }
     var selectedOwnerSection by remember { mutableStateOf("Overview") }
     val context = LocalContext.current
@@ -82,7 +85,7 @@ fun KuhuluMomoApp() {
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 28.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                item { AppTopBar(isOwner) }
+                item { AppTopBar(isOwner, hindi) { hindi = !hindi } }
                 if (isOwner) {
                     item {
                         OwnerHero()
@@ -133,45 +136,46 @@ fun KuhuluMomoApp() {
                         Text("Your Owner App is the business control panel. Sales and profit figures will populate after records are connected.", color = Muted, fontSize = 12.sp)
                     }
                 } else {
-                    item { CustomerHero() }
+                    item { CustomerHero(hindi) }
                     item {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                             Column {
-                                Text("Our menu", fontSize = 23.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
-                                Text("Freshly made. Full of flavour.", color = Muted, fontSize = 13.sp)
+                                Text(if (hindi) "हमारा मेन्यू" else "Our menu", fontSize = 23.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
+                                Text(if (hindi) "ताज़ा और स्वादिष्ट मोमोज़" else "Freshly made. Full of flavour.", color = Muted, fontSize = 13.sp)
                             }
                             Surface(color = Color(0xFFFFE6A0), shape = RoundedCornerShape(30.dp)) {
-                                Text("6 varieties", modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp), color = DeepRed, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                Text(if (hindi) "8 प्रकार" else "8 varieties", modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp), color = DeepRed, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                             }
                         }
                     }
                     items(menuItems) { item ->
                         MenuPriceCard(
                             item = item,
+                            hindi = hindi,
                             halfQuantity = cart["${item.name}|Half"] ?: 0,
                             fullQuantity = cart["${item.name}|Full"] ?: 0,
                             onAddHalf = { cart["${item.name}|Half"] = (cart["${item.name}|Half"] ?: 0) + 1 },
                             onAddFull = { cart["${item.name}|Full"] = (cart["${item.name}|Full"] ?: 0) + 1 }
                         )
                     }
-                    item { DeliveryTrustStrip() }
+                    item { DeliveryTrustStrip(hindi) }
                     item {
                         Card(shape = RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
                             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                                    Text("Your cart", fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+                                    Text(if (hindi) "आपका कार्ट" else "Your cart", fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
                                     Surface(color = Red, shape = CircleShape) {
-                                        Text("$cartCount items", color = Color.White, modifier = Modifier.padding(horizontal = 11.dp, vertical = 6.dp), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                        Text(if (hindi) "$cartCount आइटम" else "$cartCount items", color = Color.White, modifier = Modifier.padding(horizontal = 11.dp, vertical = 6.dp), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                     }
                                 }
                                 if (cartLines.isEmpty()) {
-                                    Text("Your cart is empty. Add your favourite momos above.", color = Muted)
+                                    Text(if (hindi) "कार्ट खाली है। ऊपर से मोमोज़ जोड़ें।" else "Your cart is empty. Add your favourite momos above.", color = Muted)
                                 } else {
                                     cartLines.forEach { line ->
                                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                                             Column(Modifier.weight(1f)) {
-                                                Text(line.item.name, fontWeight = FontWeight.SemiBold)
-                                                Text("${line.size} • ₹${line.price} × ${line.quantity}", color = Muted, fontSize = 12.sp)
+                                                Text(if (hindi) line.item.hindiName else line.item.name, fontWeight = FontWeight.SemiBold)
+                                                Text("${if (hindi) (if (line.size == "Half") "हाफ" else "फुल") else line.size} • ₹${line.price} × ${line.quantity}", color = Muted, fontSize = 12.sp)
                                             }
                                             TextButton(onClick = {
                                                 if (line.quantity <= 1) cart.remove(line.key) else cart[line.key] = line.quantity - 1
@@ -182,7 +186,7 @@ fun KuhuluMomoApp() {
                                     }
                                     HorizontalDivider()
                                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                        Text("Total", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                        Text(if (hindi) "कुल राशि" else "Total", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                                         Text("₹$cartTotal", fontWeight = FontWeight.ExtraBold, fontSize = 22.sp, color = Red)
                                     }
                                     Button(
@@ -190,12 +194,12 @@ fun KuhuluMomoApp() {
                                         modifier = Modifier.fillMaxWidth().height(52.dp),
                                         shape = RoundedCornerShape(15.dp),
                                         colors = ButtonDefaults.buttonColors(containerColor = Red)
-                                    ) { Text("ORDER NOW  →", fontWeight = FontWeight.ExtraBold) }
+                                    ) { Text(if (hindi) "ऑर्डर करें  →" else "ORDER NOW  →", fontWeight = FontWeight.ExtraBold) }
                                 }
                             }
                         }
                     }
-                    item { Text("Simple ordering • Friendly service • Affordable plates", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = Muted, fontSize = 12.sp) }
+                    item { Text(if (hindi) "आसान ऑर्डर • अच्छी सेवा • सही दाम" else "Simple ordering • Friendly service • Affordable plates", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = Muted, fontSize = 12.sp) }
                 }
             }
         }
@@ -203,6 +207,7 @@ fun KuhuluMomoApp() {
 
     if (showCheckout && !isOwner) {
         CheckoutDialog(
+            hindi = hindi,
             onDismiss = { showCheckout = false },
             onShare = { customerName, phone, address ->
                 val orderText = buildString {
@@ -227,7 +232,7 @@ fun KuhuluMomoApp() {
 }
 
 @Composable
-private fun AppTopBar(isOwner: Boolean) {
+private fun AppTopBar(isOwner: Boolean, hindi: Boolean, onLanguageToggle: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         BrandMark(Modifier.size(52.dp))
         Spacer(Modifier.width(10.dp))
@@ -235,8 +240,12 @@ private fun AppTopBar(isOwner: Boolean) {
             Text("KUHULU MOMO", fontWeight = FontWeight.Black, fontSize = 20.sp, color = DeepRed, letterSpacing = 0.3.sp)
             Text(if (isOwner) "OWNER • BUSINESS APP" else "FRESH • TASTY • AFFORDABLE", fontWeight = FontWeight.Bold, fontSize = 9.sp, color = Muted, letterSpacing = 1.sp)
         }
-        Surface(color = if (isOwner) Color(0xFFFFE7A3) else Color(0xFFFFE4E4), shape = RoundedCornerShape(30.dp)) {
-            Text(if (isOwner) "OWNER" else "CUSTOMER", color = DeepRed, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold, modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp))
+        if (!isOwner) {
+            TextButton(onClick = onLanguageToggle) { Text(if (hindi) "English" else "हिंदी") }
+        } else {
+            Surface(color = Color(0xFFFFE7A3), shape = RoundedCornerShape(30.dp)) {
+                Text("OWNER", color = DeepRed, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold, modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp))
+            }
         }
     }
 }
@@ -253,7 +262,7 @@ private fun BrandMark(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun CustomerHero() {
+private fun CustomerHero(hindi: Boolean) {
     Column(
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(26.dp))
             .background(Brush.linearGradient(listOf(DeepRed, Red, Color(0xFFDF3B28))))
@@ -270,9 +279,9 @@ private fun CustomerHero() {
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
             Surface(color = Yellow, shape = RoundedCornerShape(30.dp)) {
-                Text("EXPLORE MENU  ↓", color = DeepRed, fontWeight = FontWeight.ExtraBold, fontSize = 11.sp, modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp))
+                Text(if (hindi) "मेन्यू देखें  ↓" else "EXPLORE MENU  ↓", color = DeepRed, fontWeight = FontWeight.ExtraBold, fontSize = 11.sp, modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp))
             }
-            Text("Made fresh • Served hot", color = Color.White, fontSize = 10.sp)
+            Text(if (hindi) "ताज़ा बने • गरमा-गरम" else "Made fresh • Served hot", color = Color.White, fontSize = 10.sp)
         }
     }
 }
@@ -327,7 +336,7 @@ private fun OwnerActionCard(title: String, detail: String, emoji: String, select
 }
 
 @Composable
-private fun MenuPriceCard(item: MenuItem, halfQuantity: Int, fullQuantity: Int, onAddHalf: () -> Unit, onAddFull: () -> Unit) {
+private fun MenuPriceCard(item: MenuItem, hindi: Boolean, halfQuantity: Int, fullQuantity: Int, onAddHalf: () -> Unit, onAddFull: () -> Unit) {
     Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -336,21 +345,21 @@ private fun MenuPriceCard(item: MenuItem, halfQuantity: Int, fullQuantity: Int, 
                 }
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(item.name, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp, color = Ink)
-                    Text("Freshly prepared • Delicious", color = Muted, fontSize = 11.sp)
+                    Text(if (hindi) item.hindiName else item.name, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp, color = Ink)
+                    Text(if (hindi) "ताज़ा तैयार • स्वादिष्ट" else "Freshly prepared • Delicious", color = Muted, fontSize = 11.sp)
                 }
                 Text("★ 4.8", color = Color(0xFFB87900), fontWeight = FontWeight.Bold, fontSize = 11.sp)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                PriceOption("HALF • 6 PCS", item.halfPrice, halfQuantity, onAddHalf, Modifier.weight(1f))
-                PriceOption("FULL • 12 PCS", item.fullPrice, fullQuantity, onAddFull, Modifier.weight(1f))
+                PriceOption(if (hindi) "हाफ • 6 पीस" else "HALF • 6 PCS", item.halfPrice, halfQuantity, onAddHalf, Modifier.weight(1f), hindi)
+                PriceOption(if (hindi) "फुल • 12 पीस" else "FULL • 12 PCS", item.fullPrice, fullQuantity, onAddFull, Modifier.weight(1f), hindi)
             }
         }
     }
 }
 
 @Composable
-private fun PriceOption(label: String, price: Int, quantity: Int, onAdd: () -> Unit, modifier: Modifier = Modifier) {
+private fun PriceOption(label: String, price: Int, quantity: Int, onAdd: () -> Unit, modifier: Modifier = Modifier, hindi: Boolean = false) {
     Column(modifier.clip(RoundedCornerShape(14.dp)).background(Color(0xFFFFF7EF)).padding(10.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
         Text(label, fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Muted)
         Text("₹$price", fontSize = 21.sp, fontWeight = FontWeight.Black, color = DeepRed)
@@ -360,25 +369,25 @@ private fun PriceOption(label: String, price: Int, quantity: Int, onAdd: () -> U
             contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
             shape = RoundedCornerShape(11.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Red)
-        ) { Text(if (quantity == 0) "ADD  +" else "ADD  +$quantity", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold) }
+        ) { Text(if (hindi) (if (quantity == 0) "जोड़ें  +" else "जोड़ें  +$quantity") else (if (quantity == 0) "ADD  +" else "ADD  +$quantity"), fontSize = 11.sp, fontWeight = FontWeight.ExtraBold) }
     }
 }
 
 @Composable
-private fun DeliveryTrustStrip() {
+private fun DeliveryTrustStrip(hindi: Boolean) {
     Card(shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFFFFE9B0))) {
         Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("🛵", fontSize = 27.sp)
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
-                Text("HOME DELIVERY", fontWeight = FontWeight.ExtraBold, color = DeepRed, fontSize = 12.sp)
-                Text("Within 2 KM", color = Ink, fontSize = 12.sp)
+                Text(if (hindi) "होम डिलीवरी" else "HOME DELIVERY", fontWeight = FontWeight.ExtraBold, color = DeepRed, fontSize = 12.sp)
+                Text(if (hindi) "2 KM के अंदर" else "Within 2 KM", color = Ink, fontSize = 12.sp)
             }
             Text("🛡️", fontSize = 25.sp)
             Spacer(Modifier.width(6.dp))
             Column {
-                Text("FRESH", fontWeight = FontWeight.ExtraBold, color = DeepRed, fontSize = 12.sp)
-                Text("Made with care", color = Ink, fontSize = 10.sp)
+                Text(if (hindi) "ताज़ा" else "FRESH", fontWeight = FontWeight.ExtraBold, color = DeepRed, fontSize = 12.sp)
+                Text(if (hindi) "प्यार से तैयार" else "Made with care", color = Ink, fontSize = 10.sp)
             }
         }
     }
@@ -387,25 +396,25 @@ private fun DeliveryTrustStrip() {
 private data class CartLine(val item: MenuItem, val size: String, val price: Int, val quantity: Int, val key: String)
 
 @Composable
-private fun CheckoutDialog(onDismiss: () -> Unit, onShare: (String, String, String) -> Unit) {
+private fun CheckoutDialog(hindi: Boolean, onDismiss: () -> Unit, onShare: (String, String, String) -> Unit) {
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
     val ready = name.isNotBlank() && phone.length == 10 && address.isNotBlank()
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Your delivery details", fontWeight = FontWeight.Bold) },
+        title = { Text(if (hindi) "डिलीवरी की जानकारी" else "Your delivery details", fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Full name") }, singleLine = true)
-                OutlinedTextField(value = phone, onValueChange = { phone = it.filter(Char::isDigit).take(10) }, label = { Text("10-digit mobile number") }, singleLine = true)
-                OutlinedTextField(value = address, onValueChange = { address = it }, label = { Text("Full delivery address") })
-                Text("Delivery is available within 2 KM.", color = Muted, fontSize = 12.sp)
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(if (hindi) "आपका पूरा नाम" else "Full name") }, singleLine = true)
+                OutlinedTextField(value = phone, onValueChange = { phone = it.filter(Char::isDigit).take(10) }, label = { Text(if (hindi) "10 अंकों का मोबाइल नंबर" else "10-digit mobile number") }, singleLine = true)
+                OutlinedTextField(value = address, onValueChange = { address = it }, label = { Text(if (hindi) "डिलीवरी का पूरा पता" else "Full delivery address") })
+                Text(if (hindi) "डिलीवरी केवल 2 KM के अंदर उपलब्ध है।" else "Delivery is available within 2 KM.", color = Muted, fontSize = 12.sp)
             }
         },
         confirmButton = {
-            Button(onClick = { onShare(name.trim(), phone, address.trim()) }, enabled = ready) { Text("SHARE ORDER") }
+            Button(onClick = { onShare(name.trim(), phone, address.trim()) }, enabled = ready) { Text(if (hindi) "ऑर्डर शेयर करें" else "SHARE ORDER") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text(if (hindi) "रद्द करें" else "Cancel") } }
     )
 }
